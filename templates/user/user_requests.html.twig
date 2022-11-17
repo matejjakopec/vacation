@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <br>
+    <br>
+    <br>
+    <table>
+        <tr>
+            <th>start date</th>
+            <th>end date</th>
+            <th>status</th>
+        </tr>
+        {% for key, request in requests %}
+            <tr>
+                <td>{{ request.start_date }}</td>
+                <td>{{request.end_date}}</td>
+                <td>{{request.status }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

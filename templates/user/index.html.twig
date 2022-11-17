@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <br>
+    <br>
+    <br>
+    <p>username: {{user.username}}</p>
+    <p>vacation days left: {{user.vacationDaysLeft}}</p>
+    <p>team: {{user.team}}</p>
+    <p>project: {{user.project}}</p>
+
+    <a href="/user/vacation">Request vacation</a>
+    <br><br>
+    <a href="/user/requests">See requested vacations</a>
+
+    {% if user.role == 'ROLE_TEAM_LEAD'%}
+        <br>
+        <a href="/vacation/team">See teams vacation requests</a>
+    {% endif %}
+    {% if user.role == 'ROLE_PROJECT_LEAD'%}
+        <br>
+        <a href="/vacation/project">See projects vacation requests</a>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <br>
+    <br>
+    <br>
+    <a href="/admin/add-user">Add new user</a>
+    <br>
+    <br>
+    <table>
+        <tr>
+            <th>id</th>
+            <th>username</th>
+            <th>vacation days left</th>
+            <th>edit</th>
+        </tr>
+        {% for key, user in users %}
+            <tr>
+                <td>{{key}}</td>
+                <td>{{ user.username }}</td>
+                <td>{{user.vacationDaysLeft}}</td>
+                <td> <a href="/admin/edit-user/{{key}}">edit</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

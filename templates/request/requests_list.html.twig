@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <br>
+    <br>
+    <br>
+    <table>
+        <tr>
+            <th>username</th>
+            <th>start date</th>
+            <th>end date</th>
+            <th>status</th>
+            <th>approve</th>
+            <th>decline</th>
+        </tr>
+        {% for key, request in requests %}
+            <tr>
+                <td>{{ request.username }}</td>
+                <td>{{request.start_date}}</td>
+                <td>{{request.end_date}}</td>
+                <td>{{request.status }}</td>
+                <td><a href="">approve</a></td>
+                <td><a href="">decline</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
