@@ -6,6 +6,7 @@
     <br>
     <table>
         <tr>
+            <th>id</th>
             <th>username</th>
             <th>start date</th>
             <th>end date</th>
@@ -15,12 +16,13 @@
         </tr>
         {% for key, request in requests %}
             <tr>
+                <td>{{ request.id }}</td>
                 <td>{{ request.username }}</td>
                 <td>{{request.start_date}}</td>
                 <td>{{request.end_date}}</td>
                 <td>{{request.status }}</td>
-                <td><a href="">approve</a></td>
-                <td><a href="">decline</a></td>
+                <td><a href="/vacation/{{request.id}}/approve">approve</a></td>
+                <td><a href="/vacation/{{request.id}}/decline">decline</a></td>
             </tr>
         {% endfor %}
     </table>

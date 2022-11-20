@@ -27,8 +27,11 @@ class AdminController extends AbstractController
 
     private UserPasswordHasherInterface $passwordHasher;
 
-    public function __construct(Security $security, UserPasswordHasherInterface $passwordHasher)
+    private Mapper $mapper;
+
+    public function __construct(Security $security, UserPasswordHasherInterface $passwordHasher, Mapper $mapper)
     {
+        $this->mapper = $mapper;
         $this->security = $security;
         $this->passwordHasher = $passwordHasher;
     }
@@ -38,10 +41,7 @@ class AdminController extends AbstractController
         $usersRaw = $doctrine->getRepository(User::class)->findAll();
         $users = [];
         foreach ($usersRaw as $user){
-            $users[$user->getId()] = [
-                'username' => $user->getUsername(),
-                'vacationDaysLeft' => $user->getVacationDaysLeft(),
-            ];
+            $users[$user->getId()] = $this->mapper->mapUser($user);
         }
         return $this->render('admin/index.html.twig',[
             'users' => $users,
@@ -86,24 +86,81 @@ class AdminController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $user = new User();
-            $team = $doctrine->getRepository(Team::class)->find($form->get('team')->getData());
-            $project = $doctrine->getRepository(Project::class)->find($form->get('project')->getData());
-            $user->setUsername($form->get('username')->getData())
-                ->setPassword($this->passwordHasher->hashPassword($user, $form->get('password')->getData()))
-                ->setRole($form->get('role')->getData())
-                ->setTeam($team)
-                ->setProject($project)
-                ->setVacationDaysLeft($form->get('vacationDaysLeft')->getData());
-            $entityManager = $doctrine->getManager();
-            $entityManager->persist($user);
-            $entityManager->flush();
-
+            $this->handleForm($form, $doctrine, $user);
             return $this->redirectToRoute('admin');
         }
 
         return $this->renderForm('admin/add_user.html.twig', [
             'form' => $form,
         ]);
+    }
+
+    #[Route(path: '/admin/edit-user/{id}')]
+    public function editUser(ManagerRegistry $doctrine, Request $request, int $id){
+        $teamsList = $doctrine->getRepository(Team::class)->findAll();
+        $projectsList = $doctrine->getRepository(Project::class)->findAll();
+        $user = $doctrine->getRepository(User::class)->find($id);
+        $teams = [];
+        foreach ($teamsList as $team){
+            $teams[$team->getName()] = $team->getId();
+        }
+
+        $projects = [];
+        foreach ($projectsList as $project){
+            $projects[$project->getName()] = $project->getId();
+        }
+
+        $form = $this->createFormBuilder()
+            ->add('username', TextType::class,[
+                'data' => $user->getUsername()
+            ])
+            ->add('password', PasswordType::class)
+            ->add('vacationDaysLeft', NumberType::class,[
+                'data' => $user->getVacationDaysLeft()
+            ])
+            ->add('role', ChoiceType::class, [
+                'choices' => [
+                    'Worker' => 'ROLE_USER',
+                    'Team Lead' => 'ROLE_TEAM_LEAD',
+                    'Project Lead' => 'ROLE_PROJECT_LEAD',
+                    'Admin' => 'ROLE_ADMIN',
+                ],
+                'data' => $user->getRoles()[0]
+            ])
+            ->add('team', ChoiceType::class, [
+                'data' => $user->getTeam()->getId(),
+                'choices' => $teams,
+            ])
+            ->add('project', ChoiceType::class, [
+                'data' => $user->getProject()->getId(),
+                'choices' => $projects,
+            ])
+            ->add('save', SubmitType::class, ['label' => 'save user info'])
+            ->getForm();
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->handleForm($form, $doctrine, $user);
+            return $this->redirectToRoute('admin');
+        }
+
+        return $this->renderForm('admin/add_user.html.twig', [
+            'form' => $form,
+        ]);
+    }
+
+    private function handleForm($form, $doctrine, $user){
+        $team = $doctrine->getRepository(Team::class)->find($form->get('team')->getData());
+        $project = $doctrine->getRepository(Project::class)->find($form->get('project')->getData());
+        $user->setUsername($form->get('username')->getData())
+            ->setPassword($this->passwordHasher->hashPassword($user, $form->get('password')->getData()))
+            ->setRole($form->get('role')->getData())
+            ->setTeam($team)
+            ->setProject($project)
+            ->setVacationDaysLeft($form->get('vacationDaysLeft')->getData());
+        $entityManager = $doctrine->getManager();
+        $entityManager->persist($user);
+        $entityManager->flush();
     }
 
 }
