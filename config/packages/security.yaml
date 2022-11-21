@@ -22,11 +22,9 @@ security:
 
             # https://symfony.com/doc/current/security/impersonating_user.html
             # switch_user: true
-            form_login:
+            custom_authenticators:
                 # "app_login" is the name of the route created previously
-                login_path: app_login
-                check_path: app_login
-                default_target_path: redirect_after_login
+                - App\Security\AppAuthenticator
             logout:
                 path: app_logout
                 target: app_login

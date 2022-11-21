@@ -2,9 +2,11 @@
 
 namespace App\Controller;
 
+use App\Controller\Mapper\RequestMapper;
+use App\Controller\Mapper\UserMapper;
 use App\Entity\User;
 use App\Entity\VacationRequest;
-use Doctrine\Common\Collections\ArrayCollection;
+use App\Repository\UserRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
@@ -13,25 +15,26 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
-use Symfony\Component\Validator\Constraints\Collection;
 
 class RequestsController extends AbstractController
 {
     private Security $security;
 
-    private Mapper $mapper;
+    private UserMapper $userMapper;
+    private RequestMapper $requestMapper;
 
 
-    public function __construct(Security $security, Mapper $mapper)
+    public function __construct(Security $security, UserMapper $userMapper, RequestMapper $requestMapper)
     {
         $this->security = $security;
-        $this->mapper = $mapper;
+        $this->userMapper = $userMapper;
+        $this->requestMapper = $requestMapper;
     }
 
     #[Route(path: '/vacation/new', name: 'vacation_request')]
-    public function request(ManagerRegistry $doctrine, Request $request){
+    public function request(ManagerRegistry $doctrine, Request $request, UserRepository $userRepository){
         $username = $this->security->getUser()->getUserIdentifier();
-        $user = $doctrine->getRepository(User::class)->findOneBy(['username' => $username]);
+        $user = $userRepository->findOneBy(['username' => $username]);
         $form = $this->createFormBuilder()
             ->add('start_date', DateType::class, [
                 'data' => new \DateTime(),
@@ -73,23 +76,23 @@ class RequestsController extends AbstractController
     }
 
     #[Route(path: '/vacation/team', name: 'team_requests')]
-    public function teamRequests(ManagerRegistry $doctrine){
-        return $this->getSupervisorRequests('team', 'ROLE_TEAM_LEAD', 'getTeam', $doctrine);
+    public function teamRequests(UserRepository $userRepository){
+        return $this->getSupervisorRequests('team', 'ROLE_TEAM_LEAD', 'getTeam', $userRepository);
     }
 
     #[Route(path: '/vacation/project', name: 'project_requests')]
-    public function projectRequest(ManagerRegistry $doctrine){
-        return $this->getSupervisorRequests('project', 'ROLE_PROJECT_LEAD', 'getProject', $doctrine);
+    public function projectRequest(UserRepository $userRepository){
+        return $this->getSupervisorRequests('project', 'ROLE_PROJECT_LEAD', 'getProject', $userRepository);
     }
 
-    private function getSupervisorRequests($supervises, $role, $functionName, $doctrine){
+    private function getSupervisorRequests($supervises, $role, $functionName, UserRepository $userRepository){
         $username = $this->security->getUser()->getUserIdentifier();
-        $user = $doctrine->getRepository(User::class)->findOneBy(['username' => $username]);
+        $user = $userRepository->findOneBy(['username' => $username]);
         if($user->getRoles()[0] != $role){
             $response = new Response();
             return $response->setContent('not available');
         }
-        $users = $doctrine->getRepository(User::class)->findBy([$supervises => $user->$functionName()]);
+        $users = $userRepository->findBy([$supervises => $user->$functionName()]);
         $requests = [];
         foreach ($users as $u){
             if($u != $user){
@@ -102,7 +105,7 @@ class RequestsController extends AbstractController
         }
         $requestMap = [];
         foreach ($requests as $request){
-            $requestMap[] = $this->mapper->mapRequest($request);
+            $requestMap[] = $this->requestMapper->mapRequest($request);
         }
         return $this->render('request/requests_list.html.twig',[
             'requests' => $requestMap

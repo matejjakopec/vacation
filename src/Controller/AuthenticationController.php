@@ -33,15 +33,8 @@ class AuthenticationController extends AbstractController
     }
 
     #[Route(path: 'login', name: 'app_login')]
-    public function login(Request $request, ManagerRegistry $doctrine, AuthenticationUtils $authenticationUtils):Response{
-        // get the login error if there is one
-        $error = $authenticationUtils->getLastAuthenticationError();
-        $lastUsername = $authenticationUtils->getLastUsername();
-          return $this->render('login/index.html.twig', [
-              'controller_name' => 'AuthenticationController',
-              'last_username' => $lastUsername,
-              'error'         => $error,
-          ]);
+    public function login(Request $request, ManagerRegistry $doctrine):Response{
+          return $this->render('login/index.html.twig', []);
       }
 
     #[Route('/logout', name: 'app_logout', methods: ['GET'])]

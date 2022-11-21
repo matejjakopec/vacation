@@ -99,6 +99,10 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
         return $this;
     }
 
+    public function getRole(){
+        return $this->role;
+    }
+
     public function getTeam()
     {
         return $this->team;

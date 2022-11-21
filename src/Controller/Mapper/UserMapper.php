@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Mapper;
 
-class Mapper
+class UserMapper
 {
 
     public function mapUser($user){
@@ -17,14 +17,6 @@ class Mapper
         ];
     }
 
-    public function mapRequest($request){
-        return [
-            'id' => $request->getId(),
-            'username' => $request->getUser()->getUsername(),
-            'start_date' => $request->getStartDate()->format('d-m-y'),
-            'end_date' => $request->getEndDate()->format('d-m-y'),
-            'status' => $request->getStatus(),
-        ];
-    }
+
 
 }
